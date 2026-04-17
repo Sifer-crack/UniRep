@@ -1,0 +1,14 @@
+{
+  "services": [
+    {
+      "name": "hello",
+      "command": "echo Hello from service",
+      "workingDir": ""
+    },
+    {
+      "name": "timer",
+      "command": "sleep 5 && echo Timer done",
+      "workingDir": ""
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+# Run script (local use only)
+run.sh
+
+# COMPLETE versions (reference only - not submitted)
+*Complete.java
+*Complete.json
+*Complete.md
+
+# Test files
+*Test.java
+/tests/
+
+# IDE
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+
+# Build
+target/
+bin/
+
+# Logs
+*.log
