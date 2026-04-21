@@ -1,59 +1,79 @@
 package com.servicemanager;
 
-/**
- * Service.java - STUB VERSION
- * 
- * TASK: Create this class to represent a managed service.
- * 
- * What you need to create:
- * ======================
- * 1. PRIVATE FIELDS (data stored in each object):
- *    - name: String (service name)
- *    - command: String (command to run)
- *    - running: boolean (is service running?)
- * 
- * 2. CONSTRUCTOR method - runs when you create new Service(name, command)
- *    - Sets up the object
- * 
- * 3. GETTER methods - return field values:
- *    - getName() returns String
- *    - getCommand() returns String
- *    - isRunning() returns boolean
- * 
- * 4. SETTER methods - change field values:
- *    - setRunning(boolean value) sets running status
- * 
- * Concept: CLASSES + ENCAPSULATION
- * ============================================
- * A CLASS is a blueprint/template.
- * Each SERVICE object created from this class stores its own data.
- * ENCAPSULATION = keep fields private, access via methods.
- * 
- * Pseudocode to follow:
- * ==================
- * CLASS Service:
- *     FIELD name: String
- *     FIELD command: String
- *     FIELD running: boolean
- * 
- *     METHOD Service(name, command):
- *         set this.name = name
- *         set this.command = command
- *         set this.running = false
- * 
- *     METHOD getName() RETURN name
- *     METHOD getCommand() RETURN command
- *     METHOD isRunning() RETURN running
- *     METHOD setRunning(value) SET running = value
- */
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 public class Service {
-    
-    // TODO: Add private fields here
-    
-    // TODO: Add constructor here
-    
-    // TODO: Add getter methods here
-    
-    // TODO: Add setter methods here
-    
+
+    private String name;
+    private String command;
+    private String workingDir;
+    private boolean running;
+    private Process process;
+    private LocalDateTime startTime;
+    private List<String> logs;
+
+    public Service(String name, String command, String workingDir) {
+        this.name = name;
+        this.command = command;
+        this.workingDir = workingDir;
+        this.running = false;
+        this.logs = new ArrayList<>();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getCommand() {
+        return command;
+    }
+
+    public String getWorkingDir() {
+        return workingDir;
+    }
+
+    public boolean isRunning() {
+        return running;
+    }
+
+    public Process getProcess() {
+        return process;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public List<String> getLogs() {
+        return logs;
+    }
+
+    public void setRunning(boolean running) {
+        this.running = running;
+    }
+
+    public void setProcess(Process process) {
+        this.process = process;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public void addLog(String log) {
+        logs.add(log);
+    }
+
+    public String getStatus() {
+        return running ? "RUNNING" : "STOPPED";
+    }
+
+    public List<String> getLogs(int lines) {
+        if (lines >= logs.size()) {
+            return new ArrayList<>(logs);
+        }
+        return new ArrayList<>(logs.subList(logs.size() - lines, logs.size()));
+    }
 }
