@@ -157,8 +157,6 @@ public class CLI {
                 }
             } catch (ServiceException e) {
                 System.err.println("Error: " + e.getMessage());
-            } catch (Exception e) {
-                System.err.println("Error: " + e.getMessage());
             }
         }
     }

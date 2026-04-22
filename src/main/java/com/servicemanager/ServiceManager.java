@@ -48,7 +48,7 @@ public class ServiceManager {
             service.setProcess(process);
             service.setRunning(true);
             service.setStartTime(java.time.LocalDateTime.now());
-            log.info("Started service: {}", name);
+            service.addLog("Started at " + service.getStartTime());
             return "Starting " + name + "...\nStarted successfully";
         } catch (Exception e) {
             log.error("Failed to start service: {}", name, e);
@@ -100,7 +100,27 @@ public class ServiceManager {
 
     public String getServiceLogs(String name, int lines) throws ServiceNotFoundException {
         Service service = findService(name);
-        List<String> logs = service.getLogs(lines);
+        
+        List<String> logs = new ArrayList<>();
+        String sanitizedName = name.replaceAll("[^a-zA-Z0-9.-]", "_");
+        java.io.File logFile = new java.io.File("logs", sanitizedName + ".log");
+        
+        if (logFile.exists()) {
+            try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(logFile))) {
+                String line;
+                List<String> allLogs = new ArrayList<>();
+                while ((line = reader.readLine()) != null) {
+                    allLogs.add(line);
+                }
+                int start = Math.max(0, allLogs.size() - lines);
+                logs = allLogs.subList(start, allLogs.size());
+            } catch (Exception e) {
+                logs = service.getLogs(lines);
+            }
+        } else {
+            logs = service.getLogs(lines);
+        }
+        
         if (logs.isEmpty()) {
             return "No logs available";
         }

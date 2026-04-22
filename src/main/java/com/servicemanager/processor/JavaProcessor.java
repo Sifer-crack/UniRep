@@ -1,27 +1,77 @@
 package com.servicemanager.processor;
 
 import com.servicemanager.Service;
-import com.servicemanager.exception.ServiceAlreadyRunningException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringTokenizer;
 
 public class JavaProcessor implements ServiceProcessor {
+    private static final Logger log = LoggerFactory.getLogger(JavaProcessor.class);
+    private static final String LOG_DIR = "logs";
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final List<Process> runningProcesses = new ArrayList<>();
 
     @Override
     public Process start(Service service) throws Exception {
-        List<String> command = parseCommand(service.getCommand());
-        ProcessBuilder pb = new ProcessBuilder(command);
-        if (service.getWorkingDir() != null) {
-            pb.directory(new java.io.File(service.getWorkingDir()));
+        String os = System.getProperty("os.name").toLowerCase();
+        ProcessBuilder pb;
+        if (os.contains("win")) {
+            pb = new ProcessBuilder("cmd.exe", "/c", service.getCommand());
+        } else {
+            pb = new ProcessBuilder("/bin/sh", "-c", service.getCommand());
         }
+
+        String workDir = service.getWorkingDir();
+        if (workDir != null && !workDir.isEmpty()) {
+            pb.directory(new java.io.File(workDir));
+        }
+
         pb.redirectErrorStream(true);
         Process process = pb.start();
+
+        String output = captureOutput(process);
+        String timestamp = LocalDateTime.now().format(FORMATTER);
+        String logEntry = timestamp + " - " + (output.isEmpty() ? "Finished" : output);
+
+        writeToLogFile(service.getName(), logEntry);
+        service.addLog(logEntry);
+
         runningProcesses.add(process);
         return process;
+    }
+
+    private void writeToLogFile(String serviceName, String entry) throws Exception {
+        File logDir = new File(LOG_DIR);
+        if (!logDir.exists()) {
+            logDir.mkdirs();
+        }
+
+        String sanitizedName = serviceName.replaceAll("[^a-zA-Z0-9.-]", "_");
+        File logFile = new File(logDir, sanitizedName + ".log");
+
+        try (PrintWriter writer = new PrintWriter(new FileWriter(logFile, true))) {
+            writer.println(entry);
+        }
+    }
+
+    private String captureOutput(Process process) throws Exception {
+        StringBuilder output = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                output.append(line).append("\n");
+            }
+        }
+        process.waitFor();
+        return output.toString().trim();
     }
 
     @Override
@@ -40,14 +90,5 @@ public class JavaProcessor implements ServiceProcessor {
     @Override
     public boolean isAlive(Process process) {
         return process != null && process.isAlive();
-    }
-
-    private List<String> parseCommand(String command) {
-        List<String> args = new ArrayList<>();
-        StringTokenizer tokenizer = new StringTokenizer(command);
-        while (tokenizer.hasMoreTokens()) {
-            args.add(tokenizer.nextToken());
-        }
-        return args;
     }
 }
