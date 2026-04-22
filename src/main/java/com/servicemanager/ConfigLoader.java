@@ -7,23 +7,42 @@ import java.nio.file.*;
 import java.util.*;
 
 public class ConfigLoader {
-    
+
     private final Gson gson;
     private final String filePath;
-    
+    private static final String CUSTOM_CONFIG_PATH = "src/main/resources/custom.json";
+
     public ConfigLoader() {
         this("src/main/resources/services.json");
     }
-    
+
     public ConfigLoader(String filePath) {
         this.gson = new Gson();
         this.filePath = filePath;
     }
-    
+
     public List<Service> loadServices() throws ConfigLoadException {
         List<Service> services = new ArrayList<>();
 
-        try (Reader reader = Files.newBufferedReader(Paths.get(filePath))) {
+        List<Service> preloaded = loadFromFile(filePath);
+        services.addAll(preloaded);
+
+        if (Files.exists(Paths.get(CUSTOM_CONFIG_PATH))) {
+            try {
+                List<Service> custom = loadFromFile(CUSTOM_CONFIG_PATH);
+                services.addAll(custom);
+            } catch (ConfigLoadException e) {
+                // Custom file exists but has errors - just skip it
+            }
+        }
+
+        return services;
+    }
+
+    private List<Service> loadFromFile(String path) throws ConfigLoadException {
+        List<Service> services = new ArrayList<>();
+
+        try (Reader reader = Files.newBufferedReader(Paths.get(path))) {
             JsonObject jsonObject = gson.fromJson(reader, JsonObject.class);
 
             JsonArray servicesArray = jsonObject.getAsJsonArray("services");
@@ -42,7 +61,7 @@ public class ConfigLoader {
             return services;
 
         } catch (Exception e) {
-            throw new ConfigLoadException("Failed to load services from config file: " + filePath);
+            throw new ConfigLoadException("Failed to load services from config file: " + path);
         }
     }
 } 
