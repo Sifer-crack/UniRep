@@ -35,14 +35,33 @@ public class JavaProcessor implements ServiceProcessor {
         }
 
         pb.redirectErrorStream(true);
+
+        System.out.println("Starting " + service.getName() + "...");
+        System.out.println("Started successfully");
+        System.out.println();
+
         Process process = pb.start();
 
-        String output = captureOutput(process);
         String timestamp = LocalDateTime.now().format(FORMATTER);
-        String logEntry = timestamp + " - " + (output.isEmpty() ? "Finished" : output);
+        String startedEntry = timestamp + " - Started";
+        writeToLogFile(service.getName(), startedEntry);
+        service.addLog(startedEntry);
 
-        writeToLogFile(service.getName(), logEntry);
-        service.addLog(logEntry);
+        StringBuilder output = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+                output.append(line).append("\n");
+            }
+        }
+        process.waitFor();
+
+        timestamp = LocalDateTime.now().format(FORMATTER);
+        String finishedEntry = timestamp + " - Finished";
+        writeToLogFile(service.getName(), finishedEntry);
+        service.addLog(finishedEntry);
+        service.setFinishedTime(LocalDateTime.now());
 
         runningProcesses.add(process);
         return process;

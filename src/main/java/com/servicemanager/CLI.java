@@ -134,32 +134,52 @@ public class CLI {
                         waitForEnter(scanner);
                         break;
                 case 2:
-                    System.out.print("Service name: ");
+                    System.out.print("Service name (or press Enter to go back): ");
                     String startName = scanner.nextLine().trim();
-                    sm.startService(startName);
+                    if (startName.isEmpty()) {
+                        System.out.println("Returning to menu...");
+                        break;
+                    }
+                    System.out.println(sm.startService(startName));
                     waitForEnter(scanner);
                     break;
                     case 3:
-                        System.out.print("Service name: ");
+                        System.out.print("Service name (or press Enter to go back): ");
                         String stopName = scanner.nextLine().trim();
+                        if (stopName.isEmpty()) {
+                            System.out.println("Returning to menu...");
+                            break;
+                        }
                         System.out.println(sm.stopService(stopName));
                         waitForEnter(scanner);
                         break;
                     case 4:
-                        System.out.print("Service name: ");
+                        System.out.print("Service name (or press Enter to go back): ");
                         String restartName = scanner.nextLine().trim();
+                        if (restartName.isEmpty()) {
+                            System.out.println("Returning to menu...");
+                            break;
+                        }
                         System.out.println(sm.restartService(restartName));
                         waitForEnter(scanner);
                         break;
                     case 5:
-                        System.out.print("Service name: ");
+                        System.out.print("Service name (or press Enter to go back): ");
                         String statusName = scanner.nextLine().trim();
+                        if (statusName.isEmpty()) {
+                            System.out.println("Returning to menu...");
+                            break;
+                        }
                         System.out.println(sm.getServiceStatus(statusName));
                         waitForEnter(scanner);
                         break;
                     case 6:
-                        System.out.print("Service name: ");
+                        System.out.print("Service name (or press Enter to go back): ");
                         String logsName = scanner.nextLine().trim();
+                        if (logsName.isEmpty()) {
+                            System.out.println("Returning to menu...");
+                            break;
+                        }
                         System.out.println(sm.getServiceLogs(logsName, 50));
                         waitForEnter(scanner);
                         break;
@@ -170,6 +190,8 @@ public class CLI {
                     default:
                         System.out.println("Invalid choice");
                 }
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a number (0-7).");
             } catch (ServiceException e) {
                 System.err.println("Error: " + e.getMessage());
             }

@@ -48,8 +48,7 @@ public class ServiceManager {
             service.setProcess(process);
             service.setRunning(true);
             service.setStartTime(java.time.LocalDateTime.now());
-            service.addLog("Started at " + service.getStartTime());
-            return "Starting " + name + "...\nStarted successfully";
+            return name + " service started";
         } catch (Exception e) {
             log.error("Failed to start service: {}", name, e);
             throw new RuntimeException("Failed to start: " + e.getMessage());
@@ -65,6 +64,7 @@ public class ServiceManager {
             processor.stop(service.getProcess());
             service.setRunning(false);
             service.setProcess(null);
+            service.setFinishedTime(java.time.LocalDateTime.now());
             log.info("Stopped service: {}", name);
             return "Stopping " + name + "...\nStopped successfully";
         } catch (Exception e) {
@@ -94,6 +94,9 @@ public class ServiceManager {
         }
         if (service.getStartTime() != null) {
             sb.append("Started: ").append(service.getStartTime()).append("\n");
+        }
+        if (service.getFinishedTime() != null) {
+            sb.append("Finished: ").append(service.getFinishedTime()).append("\n");
         }
         return sb.toString();
     }

@@ -12,6 +12,7 @@ public class Service {
     private boolean running;
     private Process process;
     private LocalDateTime startTime;
+    private LocalDateTime finishedTime;
     private List<String> logs;
 
     public Service(String name, String command, String workingDir) {
@@ -46,6 +47,10 @@ public class Service {
         return startTime;
     }
 
+    public LocalDateTime getFinishedTime() {
+        return finishedTime;
+    }
+
     public List<String> getLogs() {
         return logs;
     }
@@ -60,6 +65,10 @@ public class Service {
 
     public void setStartTime(LocalDateTime startTime) {
         this.startTime = startTime;
+    }
+
+    public void setFinishedTime(LocalDateTime finishedTime) {
+        this.finishedTime = finishedTime;
     }
 
     public void addLog(String log) {

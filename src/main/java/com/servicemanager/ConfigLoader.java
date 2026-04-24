@@ -22,10 +22,9 @@ public class ConfigLoader {
     }
 
     public List<Service> loadServices() throws ConfigLoadException {
-        List<Service> services = new ArrayList<>();
-
-        List<Service> preloaded = loadFromFile(filePath);
-        services.addAll(preloaded);
+		
+		List<Service> preloaded = loadFromFile(filePath);
+		List<Service> services = new ArrayList<>(preloaded);
 
         if (Files.exists(Paths.get(CUSTOM_CONFIG_PATH))) {
             try {

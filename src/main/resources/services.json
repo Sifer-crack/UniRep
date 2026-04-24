@@ -7,7 +7,7 @@
     },
     {
       "name": "timer",
-      "command": "sleep 2 && echo Timer done",
+      "command": "for i in 5 4 3 2 1 0; do printf \"\\r%02d:00 \" $i; sleep 1; done; echo \" - Timer done!\"",
       "workingDir": ""
     }
   ]
