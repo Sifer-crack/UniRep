@@ -32,7 +32,7 @@ Example:
   "services": [
     {
       "name": "hello",
-      "command": "echo Hello from service",
+      "command": "echo \"Hello from service\"",
       "workingDir": ""
     }
   ]
