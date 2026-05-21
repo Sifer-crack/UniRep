@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ServiceManager {
 
@@ -21,6 +22,7 @@ public class ServiceManager {
     private final OutputDAO outputDAO;
     private final ServiceProcessor processor;
     private final ServicesLoader servicesLoader;
+    private final List<ServiceObserver> observers;
 
     public ServiceManager() throws ConfigLoadException {
         this(new SQLiteDAOFactory());
@@ -30,9 +32,10 @@ public class ServiceManager {
         this.serviceDAO = daoFactory.createServiceDAO();
         this.executionDAO = daoFactory.createExecutionDAO();
         this.outputDAO = daoFactory.createOutputDAO();
-        this.processor = new JavaProcessor(executionDAO, outputDAO);
+        this.processor = new JavaProcessor(executionDAO, outputDAO, this);
         this.servicesLoader = new ServicesLoader(new ConfigLoader(), serviceDAO);
         this.services = servicesLoader.loadAllServices();
+        this.observers = new CopyOnWriteArrayList<>();
     }
 
     public ServiceManager(ServiceDAO serviceDAO, ExecutionDAO executionDAO,
@@ -44,6 +47,31 @@ public class ServiceManager {
         this.processor = processor;
         this.servicesLoader = servicesLoader;
         this.services = servicesLoader.loadAllServices();
+        this.observers = new CopyOnWriteArrayList<>();
+    }
+
+    public void addObserver(ServiceObserver observer) {
+        observers.add(observer);
+    }
+
+    public void removeObserver(ServiceObserver observer) {
+        observers.remove(observer);
+    }
+
+    void notifyServiceFinished(String serviceName, int exitCode) {
+        String status = exitCode == 0 ? "finished" : "failed";
+        try {
+            Service service = findService(serviceName);
+            notifyObservers(service, status, "Exit code: " + exitCode);
+        } catch (Exception e) {
+
+        }
+    }
+
+    private void notifyObservers(Service service, String eventType, String message) {
+        for (ServiceObserver observer : observers) {
+            observer.onServiceEvent(eventType, service.getName(), message);
+        }
     }
 
     public String listServices() {
@@ -71,6 +99,7 @@ public class ServiceManager {
         }
         try {
             processor.start(service);
+            notifyObservers(service, "started", "Service started");
             return "Admin:" + name + " service started";
         } catch (Exception e) {
             throw new RuntimeException("Failed to start: " + e.getMessage());
@@ -87,6 +116,7 @@ public class ServiceManager {
             service.setRunning(false);
             service.setProcess(null);
             service.setFinishedTime(java.time.LocalDateTime.now());
+            notifyObservers(service, "stopped", "Service stopped");
             return "Stopping " + name + "...\nStopped successfully";
         } catch (Exception e) {
             throw new RuntimeException("Failed to stop: " + e.getMessage());
@@ -175,6 +205,7 @@ public class ServiceManager {
             throw new RuntimeException("Failed to save service: " + e.getMessage());
         }
         services.add(service);
+        notifyObservers(service, "created", "Custom service created");
     }
 
     public List<Execution> getExecutionHistory(String serviceName) {

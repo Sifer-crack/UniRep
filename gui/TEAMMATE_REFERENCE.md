@@ -28,7 +28,8 @@ src/main/java/com/servicemanager/gui/
 │   ├── ServiceManager.java       ← MAIN HUB — call this from your controller
 │   ├── ServicesLoader.java       ← merges JSON + DB services on startup
 │   ├── ServiceProcessor.java     ← interface for process lifecycle
-│   └── JavaProcessor.java        ← async process launcher (background thread)
+│   ├── JavaProcessor.java        ← async process launcher (background thread)
+│   └── ServiceObserver.java      ← Observer interface for event notifications
 ├── dao/
 │   ├── DAOFactory.java           ← Abstract Factory interface
 │   ├── SQLiteDAOFactory.java     ← Factory implementation (SQLite)
@@ -148,6 +149,7 @@ List<Output> getOutputs(int executionId)
 | **Singleton** | DatabaseManager | Single SQLite connection |
 | **Abstract Factory** | DAOFactory / SQLiteDAOFactory | Pluggable DAO creation (swap databases) |
 | **Strategy** | ServiceProcessor / JavaProcessor | Pluggable process backend |
+| **Observer** | ServiceObserver / MainController | GUI auto-updates on service state changes |
 
 ## Exception Handling in Controller
 
@@ -180,7 +182,59 @@ All exceptions extend `ServiceException` and have `getRecoveryHint()` for user-f
 | `service.ServiceManagerTest` | 11 | Business logic with mocks |
 | `exception.ExceptionTest` | 7 | Message/hint/abstract check |
 
-## What You Need to Build (UI Side)
+## Observer Pattern (Already Wired — Just Use It)
+
+The `MainController` already implements `ServiceObserver` and auto-refreshes the table on any service event:
+
+```java
+// Add observer to any custom component:
+serviceManager.addObserver(myObserver);
+
+// Events fired:
+// "started"  — service has been started
+// "stopped"  — service has been stopped
+// "finished" — service process exited (async)
+// "created"  — new custom service created
+```
+
+The observer callback runs on the JavaFX thread (`Platform.runLater`), so you can safely update UI controls.
+
+## UI Problem: Real-Time Logs & Output
+
+The current `Logs` button and output area are **too basic**. Here's what needs fixing:
+
+### Problem
+1. **Logs button** calls `getServiceLogs(name, 50)` which returns in-memory log lines — but only the last 50, and they're already visible in the output area
+2. **Output area** is a plain TextArea that just appends result strings — it doesn't show live streaming output while a service runs
+3. **No execution context** — you can't see each run's output separately or browse historical output from the database
+
+### Task Requirements
+Your job is to design and implement a **better output/logs experience** in the UI. Some ideas:
+
+1. **Live output viewer**: When you click "Start" (or "Logs"), open a new tab/window that shows the service's in-memory log lines, refreshing every 500ms via `Timeline` or `AnimationTimer`
+2. **Execution history panel**: Add a list/table showing all past executions for the selected service (use `getExecutionHistory(name)`), with start time, finish time, and exit code
+3. **Execution detail view**: When an execution is selected, show its output lines (use `getOutputs(executionId)`) in a scrollable text area
+4. **"Follow" mode**: When a service is running, auto-scroll to the latest output
+
+### Useful API
+```java
+// Returns List<Execution> with start/finish times, status, exit code
+serviceManager.getExecutionHistory("service-name")
+
+// Returns List<Output> with timestamped lines
+serviceManager.getOutputs(executionId)
+
+// In-memory logs from current session
+service.getLogs(maxLines)
+```
+
+### What to Improve
+- Replace the plain TextArea with a TabPane or SplitPane separating "Output" and "Execution History"
+- Show live output for the currently selected running service
+- Let users click an old execution to see its DB-stored output
+- Make the UI feel responsive and informative when a service runs
+
+This is your main design challenge. The logic layer already stores everything in the DB — you just need to surface it well.
 
 1. **Replace `main-view.fxml`** with actual layout (service table, start/stop buttons, create dialog)
 2. **Implement `MainController.java`** — inject `ServiceManager`, wire FXML actions to API

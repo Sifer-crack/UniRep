@@ -17,10 +17,12 @@ public class JavaProcessor implements ServiceProcessor {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final ExecutionDAO executionDAO;
     private final OutputDAO outputDAO;
+    private final ServiceManager serviceManager;
 
-    public JavaProcessor(ExecutionDAO executionDAO, OutputDAO outputDAO) {
+    public JavaProcessor(ExecutionDAO executionDAO, OutputDAO outputDAO, ServiceManager serviceManager) {
         this.executionDAO = executionDAO;
         this.outputDAO = outputDAO;
+        this.serviceManager = serviceManager;
     }
 
     @Override
@@ -76,6 +78,7 @@ public class JavaProcessor implements ServiceProcessor {
                 executionDAO.updateFinish(executionId, finishTime, exitCode, finishStatus);
                 service.setRunning(false);
                 service.setFinishedTime(finishTime);
+                serviceManager.notifyServiceFinished(service.getName(), exitCode);
             } catch (Exception e) {
                 String timestamp = LocalDateTime.now().format(FORMATTER);
                 service.addLog(timestamp + " - [WaitFor Error: " + e.getMessage() + "]");

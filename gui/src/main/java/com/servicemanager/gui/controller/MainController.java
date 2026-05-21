@@ -4,13 +4,15 @@ import com.servicemanager.gui.exception.ConfigLoadException;
 import com.servicemanager.gui.exception.DuplicateServiceException;
 import com.servicemanager.gui.model.Service;
 import com.servicemanager.gui.service.ServiceManager;
+import com.servicemanager.gui.service.ServiceObserver;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 
-public class MainController {
+public class MainController implements ServiceObserver {
 
     @FXML private TableView<Service> serviceTable;
     @FXML private TableColumn<Service, String> nameColumn;
@@ -32,6 +34,7 @@ public class MainController {
 
         try {
             serviceManager = new ServiceManager();
+            serviceManager.addObserver(this);
             refreshTable();
             appendOutput("Service Manager ready. Loaded " + serviceList.size() + " services.");
         } catch (ConfigLoadException e) {
@@ -44,6 +47,14 @@ public class MainController {
                 commandField.setText(sel.getCommand());
                 workingDirField.setText(sel.getWorkingDir());
             }
+        });
+    }
+
+    @Override
+    public void onServiceEvent(String eventType, String serviceName, String message) {
+        Platform.runLater(() -> {
+            appendOutput("[" + eventType + "] " + serviceName + " - " + message);
+            refreshTable();
         });
     }
 
