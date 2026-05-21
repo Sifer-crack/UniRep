@@ -119,7 +119,20 @@ Evaluated each proposed fix, implemented the correct solution (excluding conflic
 
 ---
 
-## 9. Documentation
+## 10. Observer Pattern & Notification System
+
+**Prompt:**  
+"Add an Observer pattern to the Service Manager so the GUI automatically receives events when services start, stop, finish, or are created. The MainController should implement the observer interface and update the UI asynchronously."
+
+**AI Role:**  
+Generated the ServiceObserver interface, the observer list management in ServiceManager, the callback wiring in JavaProcessor's async thread, and the MainController implementation with Platform.runLater for thread safety.
+
+**Human Role:**  
+Reviewed the thread safety of CopyOnWriteArrayList vs synchronized blocks, ensured the DI constructor also initialises the observer list, verified that existing tests continue to pass without modification, and documented the Observer API in TEAMMATE_REFERENCE.md for the UI teammate.
+
+---
+
+## 11. Documentation
 
 **Prompt:**  
 "Create developer documentation for my teammate covering the ServiceManager API, database schema, design patterns, and testing guidance."
