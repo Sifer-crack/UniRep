@@ -12,6 +12,11 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 
+/** JavaFX controller for the main service management view.
+ *  Handles all user interactions: start, stop, restart, logs,
+ *  status, refresh, and create custom service.
+ *  Implements ServiceObserver so the table and output area
+ *  update automatically when service state changes. */
 public class MainController implements ServiceObserver {
 
     @FXML private TableView<Service> serviceTable;

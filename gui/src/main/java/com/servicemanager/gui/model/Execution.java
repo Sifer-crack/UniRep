@@ -2,6 +2,10 @@ package com.servicemanager.gui.model;
 
 import java.time.LocalDateTime;
 
+/** Model representing a single run of a service.
+ *  Records when the process started and finished, what exit code
+ *  it returned, and whether it completed successfully or failed.
+ *  Persisted in the executions table in the database. */
 public class Execution {
 
     private int id;

@@ -12,6 +12,11 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.TimeUnit;
 
+/** Strategy implementation that launches OS processes via ProcessBuilder.
+ *  Reads stdout on a background daemon thread so the GUI stays responsive.
+ *  Each line of output is persisted to the database and added to the
+ *  service's in-memory log. When the process exits, it notifies the
+ *  ServiceManager so observers can update the UI. */
 public class JavaProcessor implements ServiceProcessor {
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");

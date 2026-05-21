@@ -4,6 +4,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/** Core model representing a service that the manager can run.
+ *  Holds the service definition (name, command, working directory),
+ *  runtime state (running, process handle, timestamps), and an
+ *  in-memory log buffer captured during execution. */
 public class Service {
 
     private int id;

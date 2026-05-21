@@ -1,5 +1,8 @@
 package com.servicemanager.gui.exception;
 
+/** Abstract base for all service-related exceptions.
+ *  Subclasses must provide a recovery hint via getRecoveryHint()
+ *  so the UI can show the user what action to take next. */
 public abstract class ServiceException extends Exception {
 
     protected String serviceName;

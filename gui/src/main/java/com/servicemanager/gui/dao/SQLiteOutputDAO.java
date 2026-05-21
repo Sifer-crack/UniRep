@@ -6,6 +6,10 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/** SQLite JDBC implementation of OutputDAO.
+ *  Persists each output line with its execution foreign key,
+ *  timestamp, content, and stream type. Ordered by ID ascending
+ *  to preserve the order lines were captured. */
 public class SQLiteOutputDAO implements OutputDAO {
 
     private final DatabaseManager dbManager;

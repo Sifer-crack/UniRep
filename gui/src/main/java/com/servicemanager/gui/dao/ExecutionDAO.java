@@ -5,6 +5,10 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/** Data access interface for the executions table.
+ *  Supports creating new execution records, querying by ID or
+ *  service name, and updating finish details when the
+ *  underlying process completes. */
 public interface ExecutionDAO {
 
     void insert(Execution execution) throws SQLException;

@@ -9,6 +9,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+/** Merges services from two sources into a single list.
+ *  Predefined services come from the JSON config file on the classpath.
+ *  Custom services are loaded from the database.
+ *  If a service with the same name exists in both sources,
+ *  the JSON version takes precedence (no duplicate in the list). */
 public class ServicesLoader {
 
     private final ConfigLoader configLoader;

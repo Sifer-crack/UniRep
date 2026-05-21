@@ -1,5 +1,8 @@
 package com.servicemanager.gui.exception;
 
+/** Thrown when trying to create a custom service with a name
+ *  that already exists in the system — either from the JSON config
+ *  file or from a previously created custom service. */
 public class DuplicateServiceException extends ServiceException {
 
     public DuplicateServiceException(String serviceName) {

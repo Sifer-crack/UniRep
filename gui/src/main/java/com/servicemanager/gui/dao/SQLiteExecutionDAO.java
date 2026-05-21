@@ -8,6 +8,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+/** SQLite JDBC implementation of ExecutionDAO.
+ *  Stores timestamps as formatted date-time strings (yyyy-MM-dd HH:mm:ss)
+ *  and retrieves the last inserted row ID after each insert to
+ *  keep Execution objects in sync with the database. */
 public class SQLiteExecutionDAO implements ExecutionDAO {
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");

@@ -1,5 +1,9 @@
 package com.servicemanager.gui.model;
 
+/** Model representing a single line of output captured from a
+ *  service process during an execution. Each output belongs to
+ *  one execution and records which stream (STDOUT/STDERR)
+ *  produced it. Persisted in the outputs table. */
 public class Output {
 
     private int id;

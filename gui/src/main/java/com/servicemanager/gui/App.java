@@ -7,6 +7,9 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
+/** JavaFX entry point for the Service Manager GUI.
+ *  Loads the main FXML layout, creates the scene, and shows the stage.
+ *  The FXML file is loaded from the classpath next to this class. */
 public class App extends Application {
 
     @Override

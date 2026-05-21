@@ -1,5 +1,8 @@
 package com.servicemanager.gui.exception;
 
+/** Thrown when the user enters an unrecognised CLI command.
+ *  Provides a hint listing available commands so the user
+ *  can correct their input. */
 public class InvalidCommandException extends ServiceException {
 
     private final String command;

@@ -5,6 +5,11 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+/** Singleton managing the SQLite database connection.
+ *  Lazily initialises the connection on first access and
+ *  auto-creates the services, executions, and outputs tables
+ *  if they do not yet exist. Supports custom connection URLs
+ *  for testing with temporary in-memory databases. */
 public class DatabaseManager {
 
     private static DatabaseManager instance;

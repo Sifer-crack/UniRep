@@ -6,6 +6,9 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/** SQLite JDBC implementation of ServiceDAO.
+ *  Uses PreparedStatements for all CRUD operations and
+ *  maps ResultSet rows to Service model objects. */
 public class SQLiteServiceDAO implements ServiceDAO {
 
     private final DatabaseManager dbManager;

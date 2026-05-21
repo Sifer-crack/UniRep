@@ -8,6 +8,10 @@ import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 
+/** Loads service definitions from a JSON configuration file.
+ *  Supports loading from the classpath by default (for runtime)
+ *  or from the filesystem path (for testing with custom files).
+ *  The JSON format is: { "services": [{ "name": "...", "command": "..." }] } */
 public class ConfigLoader {
 
     private final Gson gson;

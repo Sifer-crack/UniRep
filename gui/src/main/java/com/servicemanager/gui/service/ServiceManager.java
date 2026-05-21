@@ -14,6 +14,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+/** Central business logic hub of the application.
+ *  Orchestrates the full service lifecycle: start, stop, restart,
+ *  status checks, log retrieval, and custom service creation.
+ *  Uses DAOFactory for database access, ServiceProcessor for
+ *  OS process management, and fires Observer events so the
+ *  GUI can react to state changes automatically. */
 public class ServiceManager {
 
     private final List<Service> services;

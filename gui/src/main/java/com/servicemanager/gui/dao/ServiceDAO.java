@@ -4,6 +4,9 @@ import com.servicemanager.gui.model.Service;
 import java.sql.SQLException;
 import java.util.List;
 
+/** Data access interface for the services table.
+ *  Defines the contract for persisting and retrieving
+ *  service definitions regardless of the database backend. */
 public interface ServiceDAO {
 
     void insert(Service service) throws SQLException;
