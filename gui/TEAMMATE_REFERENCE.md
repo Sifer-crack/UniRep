@@ -16,35 +16,35 @@ mvn clean javafx:run  # launch the GUI
 
 ```
 src/main/java/com/servicemanager/gui/
-├── App.java                      ← JavaFX Application entry point
-├── Launcher.java                 ← main() workaround for module-path
+├── App.java                      JavaFX Application entry point
+├── Launcher.java                 main() workaround for module-path
 ├── controller/
-│   └── MainController.java       ← YOUR DOMAIN — JavaFX Controller
+│   └── MainController.java       JavaFX Controller
 ├── model/
-│   ├── Service.java              ← service data (name, command, workingDir, state)
-│   ├── Execution.java            ← DB execution record (start/finish times)
-│   └── Output.java               ← DB output line record
+│   ├── Service.java              service data (name, command, workingDir, state)
+│   ├── Execution.java            DB execution record (start/finish times)
+│   └── Output.java               DB output line record
 ├── service/
-│   ├── ServiceManager.java       ← MAIN HUB — call this from your controller
-│   ├── ServicesLoader.java       ← merges JSON + DB services on startup
-│   ├── ServiceProcessor.java     ← interface for process lifecycle
-│   ├── JavaProcessor.java        ← async process launcher (background thread)
-│   └── ServiceObserver.java      ← Observer interface for event notifications
+│   ├── ServiceManager.java       main hub — call this from your controller
+│   ├── ServicesLoader.java       merges JSON + DB services on startup
+│   ├── ServiceProcessor.java     interface for process lifecycle
+│   ├── JavaProcessor.java        async process launcher (background thread)
+│   └── ServiceObserver.java      Observer interface for event notifications
 ├── dao/
-│   ├── DAOFactory.java           ← Abstract Factory interface
-│   ├── SQLiteDAOFactory.java     ← Factory implementation (SQLite)
-│   ├── ServiceDAO.java           ← interface
-│   ├── ExecutionDAO.java         ← interface
-│   ├── OutputDAO.java            ← interface
-│   ├── SQLiteServiceDAO.java     ← implementation (JDBC)
-│   ├── SQLiteExecutionDAO.java   ← implementation
-│   └── SQLiteOutputDAO.java      ← implementation
+│   ├── DAOFactory.java           Abstract Factory interface
+│   ├── SQLiteDAOFactory.java     Factory implementation (SQLite)
+│   ├── ServiceDAO.java           interface
+│   ├── ExecutionDAO.java         interface
+│   ├── OutputDAO.java            interface
+│   ├── SQLiteServiceDAO.java     implementation (JDBC)
+│   ├── SQLiteExecutionDAO.java   implementation
+│   └── SQLiteOutputDAO.java      implementation
 ├── db/
-│   └── DatabaseManager.java      ← Singleton — auto-creates tables on first use
+│   └── DatabaseManager.java      Singleton — auto-creates tables on first use
 ├── config/
-│   └── ConfigLoader.java         ← reads services.json (File I/O requirement)
+│   └── ConfigLoader.java         reads services.json (File I/O requirement)
 └── exception/
-    ├── ServiceException.java     ← abstract base
+    ├── ServiceException.java     abstract base
     ├── ConfigLoadException.java
     ├── ServiceNotFoundException.java
     ├── ServiceAlreadyRunningException.java
@@ -53,9 +53,9 @@ src/main/java/com/servicemanager/gui/
     └── DuplicateServiceException.java
 
 src/main/resources/
-├── services.json                 ← predefined seed services
+├── services.json                 predefined seed services
 └── com/servicemanager/gui/
-    └── main-view.fxml            ← YOUR DOMAIN — FXML layout (placeholder)
+    └── main-view.fxml            FXML layout (placeholder)
 ```
 
 ## `ServiceManager` API — What Your Controller Calls
@@ -199,42 +199,9 @@ serviceManager.addObserver(myObserver);
 
 The observer callback runs on the JavaFX thread (`Platform.runLater`), so you can safely update UI controls.
 
-## UI Problem: Real-Time Logs & Output
+## UI Problem: Logging & Output
 
-The current `Logs` button and output area are **too basic**. Here's what needs fixing:
-
-### Problem
-1. **Logs button** calls `getServiceLogs(name, 50)` which returns in-memory log lines — but only the last 50, and they're already visible in the output area
-2. **Output area** is a plain TextArea that just appends result strings — it doesn't show live streaming output while a service runs
-3. **No execution context** — you can't see each run's output separately or browse historical output from the database
-
-### Task Requirements
-Your job is to design and implement a **better output/logs experience** in the UI. Some ideas:
-
-1. **Live output viewer**: When you click "Start" (or "Logs"), open a new tab/window that shows the service's in-memory log lines, refreshing every 500ms via `Timeline` or `AnimationTimer`
-2. **Execution history panel**: Add a list/table showing all past executions for the selected service (use `getExecutionHistory(name)`), with start time, finish time, and exit code
-3. **Execution detail view**: When an execution is selected, show its output lines (use `getOutputs(executionId)`) in a scrollable text area
-4. **"Follow" mode**: When a service is running, auto-scroll to the latest output
-
-### Useful API
-```java
-// Returns List<Execution> with start/finish times, status, exit code
-serviceManager.getExecutionHistory("service-name")
-
-// Returns List<Output> with timestamped lines
-serviceManager.getOutputs(executionId)
-
-// In-memory logs from current session
-service.getLogs(maxLines)
-```
-
-### What to Improve
-- Replace the plain TextArea with a TabPane or SplitPane separating "Output" and "Execution History"
-- Show live output for the currently selected running service
-- Let users click an old execution to see its DB-stored output
-- Make the UI feel responsive and informative when a service runs
-
-This is your main design challenge. The logic layer already stores everything in the DB — you just need to surface it well.
+The current Logs button and output area feel bare. Think of a better way of logging and outputting service activity — live output while running, execution history, DB-stored logs per run, whatever you think makes the experience informative and polished.
 
 1. **Replace `main-view.fxml`** with actual layout (service table, start/stop buttons, create dialog)
 2. **Implement `MainController.java`** — inject `ServiceManager`, wire FXML actions to API
