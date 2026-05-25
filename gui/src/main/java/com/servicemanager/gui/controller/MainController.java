@@ -140,7 +140,11 @@ public class MainController implements ServiceObserver {
         String workingDir = workingDirField.getText().trim();
 
         if (name.isEmpty() || command.isEmpty()) {
-            appendOutput("Name and Command are required.");
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Validation Error");
+            alert.setHeaderText("Missing Required Fields");
+            alert.setContentText("Please enter both a service name and command.");
+            alert.showAndWait();
             return;
         }
 
