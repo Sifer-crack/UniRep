@@ -151,6 +151,11 @@ public class MainController implements ServiceObserver {
         try {
             serviceManager.createCustomService(name, command, workingDir);
             appendOutput("Service '" + name + "' created.");
+            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+            successAlert.setTitle("Service Created");
+            successAlert.setHeaderText("Service Created Successfully");
+            successAlert.setContentText("The service '" + name + "' has been added.");
+            successAlert.showAndWait();
             nameField.clear();
             commandField.clear();
             workingDirField.clear();
