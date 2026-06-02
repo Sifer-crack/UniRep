@@ -174,6 +174,9 @@ public class MainController implements ServiceObserver {
         serviceList.setAll(serviceManager.getServices());
         serviceTable.setItems(serviceList);
     }
+    void setServiceManagerForTest(ServiceManager serviceManager) {
+        this.serviceManager = serviceManager;
+    }
 
     private void appendOutput(String text) {
         if (text == null || text.isEmpty()) return;
