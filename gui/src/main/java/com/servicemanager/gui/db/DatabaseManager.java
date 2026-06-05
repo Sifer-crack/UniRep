@@ -9,7 +9,11 @@ import java.sql.Statement;
  *  Lazily initialises the connection on first access and
  *  auto-creates the services, executions, and outputs tables
  *  if they do not yet exist. Supports custom connection URLs
- *  for testing with temporary in-memory databases. */
+ *  for testing with temporary in-memory databases.
+ *  Connection lifecycle is managed solely by this class —
+ *  DAOs must NOT close the connection themselves. Thread-safe
+ *  database access is guaranteed by synchronized blocks in the
+ *  DAO layer that serialize all operations on this instance. */
 public class DatabaseManager {
 
     private static DatabaseManager instance;

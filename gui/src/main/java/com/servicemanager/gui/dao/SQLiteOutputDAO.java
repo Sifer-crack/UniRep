@@ -9,7 +9,10 @@ import java.util.List;
 /** SQLite JDBC implementation of OutputDAO.
  *  Persists each output line with its execution foreign key,
  *  timestamp, content, and stream type. Ordered by ID ascending
- *  to preserve the order lines were captured. */
+ *  to preserve the order lines were captured.
+ *  All database operations synchronize on the shared DatabaseManager
+ *  instance to prevent concurrent-close races when multiple service
+ *  IO threads write to the database at the same time. */
 public class SQLiteOutputDAO implements OutputDAO {
 
     private final DatabaseManager dbManager;
@@ -25,13 +28,15 @@ public class SQLiteOutputDAO implements OutputDAO {
     @Override
     public void insert(Output output) throws SQLException {
         String sql = "INSERT INTO outputs (execution_id, timestamp, line, stream) VALUES (?, ?, ?, ?)";
-        try (Connection conn = dbManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, output.getExecutionId());
-            stmt.setString(2, output.getTimestamp());
-            stmt.setString(3, output.getLine());
-            stmt.setString(4, output.getStream());
-            stmt.executeUpdate();
+        synchronized (dbManager) {
+            Connection conn = dbManager.getConnection();
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, output.getExecutionId());
+                stmt.setString(2, output.getTimestamp());
+                stmt.setString(3, output.getLine());
+                stmt.setString(4, output.getStream());
+                stmt.executeUpdate();
+            }
         }
     }
 
@@ -39,18 +44,20 @@ public class SQLiteOutputDAO implements OutputDAO {
     public List<Output> findByExecutionId(int executionId) throws SQLException {
         List<Output> outputs = new ArrayList<>();
         String sql = "SELECT * FROM outputs WHERE execution_id = ? ORDER BY id ASC";
-        try (Connection conn = dbManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, executionId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    outputs.add(new Output(
-                        rs.getInt("id"),
-                        rs.getInt("execution_id"),
-                        rs.getString("timestamp"),
-                        rs.getString("line"),
-                        rs.getString("stream")
-                    ));
+        synchronized (dbManager) {
+            Connection conn = dbManager.getConnection();
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, executionId);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        outputs.add(new Output(
+                            rs.getInt("id"),
+                            rs.getInt("execution_id"),
+                            rs.getString("timestamp"),
+                            rs.getString("line"),
+                            rs.getString("stream")
+                        ));
+                    }
                 }
             }
         }

@@ -8,7 +8,10 @@ import java.util.List;
 
 /** SQLite JDBC implementation of ServiceDAO.
  *  Uses PreparedStatements for all CRUD operations and
- *  maps ResultSet rows to Service model objects. */
+ *  maps ResultSet rows to Service model objects.
+ *  All database operations synchronize on the shared DatabaseManager
+ *  instance to prevent concurrent-close races when multiple service
+ *  IO threads write to the database at the same time. */
 public class SQLiteServiceDAO implements ServiceDAO {
 
     private final DatabaseManager dbManager;
@@ -24,24 +27,28 @@ public class SQLiteServiceDAO implements ServiceDAO {
     @Override
     public void insert(Service service) throws SQLException {
         String sql = "INSERT INTO services (name, command, working_dir) VALUES (?, ?, ?)";
-        try (Connection conn = dbManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, service.getName());
-            stmt.setString(2, service.getCommand());
-            stmt.setString(3, service.getWorkingDir());
-            stmt.executeUpdate();
+        synchronized (dbManager) {
+            Connection conn = dbManager.getConnection();
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, service.getName());
+                stmt.setString(2, service.getCommand());
+                stmt.setString(3, service.getWorkingDir());
+                stmt.executeUpdate();
+            }
         }
     }
 
     @Override
     public Service findByName(String name) throws SQLException {
         String sql = "SELECT * FROM services WHERE name = ?";
-        try (Connection conn = dbManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, name);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return mapService(rs);
+        synchronized (dbManager) {
+            Connection conn = dbManager.getConnection();
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, name);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        return mapService(rs);
+                    }
                 }
             }
         }
@@ -50,37 +57,43 @@ public class SQLiteServiceDAO implements ServiceDAO {
 
     @Override
     public List<Service> findAll() throws SQLException {
-        List<Service> services = new ArrayList<>();
+        List<Service> result = new ArrayList<>();
         String sql = "SELECT * FROM services";
-        try (Connection conn = dbManager.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                services.add(mapService(rs));
+        synchronized (dbManager) {
+            Connection conn = dbManager.getConnection();
+            try (Statement stmt = conn.createStatement();
+                 ResultSet rs = stmt.executeQuery(sql)) {
+                while (rs.next()) {
+                    result.add(mapService(rs));
+                }
             }
         }
-        return services;
+        return result;
     }
 
     @Override
     public void update(Service service) throws SQLException {
         String sql = "UPDATE services SET command = ?, working_dir = ? WHERE name = ?";
-        try (Connection conn = dbManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, service.getCommand());
-            stmt.setString(2, service.getWorkingDir());
-            stmt.setString(3, service.getName());
-            stmt.executeUpdate();
+        synchronized (dbManager) {
+            Connection conn = dbManager.getConnection();
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, service.getCommand());
+                stmt.setString(2, service.getWorkingDir());
+                stmt.setString(3, service.getName());
+                stmt.executeUpdate();
+            }
         }
     }
 
     @Override
     public void delete(String name) throws SQLException {
         String sql = "DELETE FROM services WHERE name = ?";
-        try (Connection conn = dbManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, name);
-            stmt.executeUpdate();
+        synchronized (dbManager) {
+            Connection conn = dbManager.getConnection();
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, name);
+                stmt.executeUpdate();
+            }
         }
     }
 

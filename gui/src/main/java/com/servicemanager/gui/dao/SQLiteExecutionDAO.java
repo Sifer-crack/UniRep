@@ -11,7 +11,10 @@ import java.util.List;
 /** SQLite JDBC implementation of ExecutionDAO.
  *  Stores timestamps as formatted date-time strings (yyyy-MM-dd HH:mm:ss)
  *  and retrieves the last inserted row ID after each insert to
- *  keep Execution objects in sync with the database. */
+ *  keep Execution objects in sync with the database.
+ *  All database operations synchronize on the shared DatabaseManager
+ *  instance to prevent concurrent-close races when multiple service
+ *  IO threads write to the database at the same time. */
 public class SQLiteExecutionDAO implements ExecutionDAO {
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -28,17 +31,19 @@ public class SQLiteExecutionDAO implements ExecutionDAO {
     @Override
     public void insert(Execution execution) throws SQLException {
         String sql = "INSERT INTO executions (service_name, start_time, status) VALUES (?, ?, ?)";
-        try (Connection conn = dbManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, execution.getServiceName());
-            stmt.setString(2, execution.getStartTime().format(FORMATTER));
-            stmt.setString(3, execution.getStatus());
-            stmt.executeUpdate();
+        synchronized (dbManager) {
+            Connection conn = dbManager.getConnection();
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, execution.getServiceName());
+                stmt.setString(2, execution.getStartTime().format(FORMATTER));
+                stmt.setString(3, execution.getStatus());
+                stmt.executeUpdate();
 
-            try (Statement idStmt = conn.createStatement();
-                 ResultSet rs = idStmt.executeQuery("SELECT last_insert_rowid()")) {
-                if (rs.next()) {
-                    execution.setId(rs.getInt(1));
+                try (Statement idStmt = conn.createStatement();
+                     ResultSet rs = idStmt.executeQuery("SELECT last_insert_rowid()")) {
+                    if (rs.next()) {
+                        execution.setId(rs.getInt(1));
+                    }
                 }
             }
         }
@@ -47,12 +52,14 @@ public class SQLiteExecutionDAO implements ExecutionDAO {
     @Override
     public Execution findById(int id) throws SQLException {
         String sql = "SELECT * FROM executions WHERE id = ?";
-        try (Connection conn = dbManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return mapExecution(rs);
+        synchronized (dbManager) {
+            Connection conn = dbManager.getConnection();
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, id);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        return mapExecution(rs);
+                    }
                 }
             }
         }
@@ -63,12 +70,14 @@ public class SQLiteExecutionDAO implements ExecutionDAO {
     public List<Execution> findByServiceName(String serviceName) throws SQLException {
         List<Execution> executions = new ArrayList<>();
         String sql = "SELECT * FROM executions WHERE service_name = ? ORDER BY start_time DESC";
-        try (Connection conn = dbManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, serviceName);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    executions.add(mapExecution(rs));
+        synchronized (dbManager) {
+            Connection conn = dbManager.getConnection();
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, serviceName);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        executions.add(mapExecution(rs));
+                    }
                 }
             }
         }
@@ -79,11 +88,13 @@ public class SQLiteExecutionDAO implements ExecutionDAO {
     public List<Execution> findAll() throws SQLException {
         List<Execution> executions = new ArrayList<>();
         String sql = "SELECT * FROM executions ORDER BY start_time DESC";
-        try (Connection conn = dbManager.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                executions.add(mapExecution(rs));
+        synchronized (dbManager) {
+            Connection conn = dbManager.getConnection();
+            try (Statement stmt = conn.createStatement();
+                 ResultSet rs = stmt.executeQuery(sql)) {
+                while (rs.next()) {
+                    executions.add(mapExecution(rs));
+                }
             }
         }
         return executions;
@@ -92,13 +103,15 @@ public class SQLiteExecutionDAO implements ExecutionDAO {
     @Override
     public void updateFinish(int id, LocalDateTime finishTime, int exitCode, String status) throws SQLException {
         String sql = "UPDATE executions SET finish_time = ?, exit_code = ?, status = ? WHERE id = ?";
-        try (Connection conn = dbManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, finishTime.format(FORMATTER));
-            stmt.setInt(2, exitCode);
-            stmt.setString(3, status);
-            stmt.setInt(4, id);
-            stmt.executeUpdate();
+        synchronized (dbManager) {
+            Connection conn = dbManager.getConnection();
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, finishTime.format(FORMATTER));
+                stmt.setInt(2, exitCode);
+                stmt.setString(3, status);
+                stmt.setInt(4, id);
+                stmt.executeUpdate();
+            }
         }
     }
 
