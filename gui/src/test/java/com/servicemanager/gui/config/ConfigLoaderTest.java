@@ -44,4 +44,32 @@ public class ConfigLoaderTest {
         List<Service> services = loader.loadServices();
         assertTrue(services.isEmpty());
     }
+
+    @Test
+    public void loadServicesWithWindowsCommandShouldParseIt() throws Exception {
+        File tempConfig = File.createTempFile("services_win_", ".json");
+        tempConfig.deleteOnExit();
+        try (FileWriter w = new FileWriter(tempConfig)) {
+            w.write("{\"services\":[{\"name\":\"win-svc\",\"command\":\"unix-cmd\",\"windowsCommand\":\"win-cmd\",\"workingDir\":\"\"}]}");
+        }
+
+        ConfigLoader loader = new ConfigLoader(tempConfig.getAbsolutePath());
+        List<Service> services = loader.loadServices();
+        assertEquals(1, services.size());
+        assertEquals("win-cmd", services.get(0).getWindowsCommand());
+        assertEquals("unix-cmd", services.get(0).getCommand());
+    }
+
+    @Test
+    public void loadServicesWithoutWindowsCommandShouldLeaveItNull() throws Exception {
+        File tempConfig = File.createTempFile("services_no_win_", ".json");
+        tempConfig.deleteOnExit();
+        try (FileWriter w = new FileWriter(tempConfig)) {
+            w.write("{\"services\":[{\"name\":\"svc\",\"command\":\"cmd\",\"workingDir\":\"\"}]}");
+        }
+
+        ConfigLoader loader = new ConfigLoader(tempConfig.getAbsolutePath());
+        List<Service> services = loader.loadServices();
+        assertNull(services.get(0).getWindowsCommand());
+    }
 }

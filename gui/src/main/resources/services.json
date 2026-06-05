@@ -17,6 +17,12 @@
       "command": "echo \"Current directory contents:\" && ls -la",
       "windowsCommand": "echo Current directory contents: && dir",
       "workingDir": ""
+    },
+    {
+      "name": "os-check",
+      "command": "echo \"Platform: $(uname -o)\" && echo \"Default shell: /bin/sh\"",
+      "windowsCommand": "echo Platform: Windows & echo Default shell: cmd.exe",
+      "workingDir": ""
     }
   ]
 }

@@ -64,6 +64,7 @@ public class DatabaseManager {
                 "windows_command TEXT DEFAULT '', " +
                 "working_dir TEXT DEFAULT '')"
             );
+            migrateServicesTable(stmt);
 
             stmt.executeUpdate(
                 "CREATE TABLE IF NOT EXISTS executions (" +
@@ -84,6 +85,17 @@ public class DatabaseManager {
                 "stream TEXT DEFAULT 'STDOUT', " +
                 "FOREIGN KEY (execution_id) REFERENCES executions(id) ON DELETE CASCADE)"
             );
+        }
+    }
+
+    private void migrateServicesTable(Statement stmt) {
+        try {
+            stmt.executeUpdate("ALTER TABLE services ADD COLUMN windows_command TEXT DEFAULT ''");
+            log.info("Migrated services table: added windows_command column");
+        } catch (SQLException e) {
+            if (!e.getMessage().contains("duplicate column")) {
+                log.warn("Migration attempt for services table: {}", e.getMessage());
+            }
         }
     }
 

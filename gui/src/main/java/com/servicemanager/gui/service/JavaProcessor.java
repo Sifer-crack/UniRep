@@ -24,6 +24,8 @@ public class JavaProcessor implements ServiceProcessor {
     private final OutputDAO outputDAO;
     private final ServiceManager serviceManager;
 
+    static String osName = System.getProperty("os.name");
+
     public JavaProcessor(ExecutionDAO executionDAO, OutputDAO outputDAO, ServiceManager serviceManager) {
         this.executionDAO = executionDAO;
         this.outputDAO = outputDAO;
@@ -32,15 +34,9 @@ public class JavaProcessor implements ServiceProcessor {
 
     @Override
     public Process start(Service service) throws Exception {
-        String os = System.getProperty("os.name").toLowerCase();
-        String command;
-        if (os.contains("win")) {
-            command = service.getWindowsCommand() != null ? service.getWindowsCommand() : service.getCommand();
-        } else {
-            command = service.getCommand();
-        }
+        String command = resolveCommand(service);
         ProcessBuilder pb;
-        if (os.contains("win")) {
+        if (isWindows()) {
             pb = new ProcessBuilder("cmd.exe", "/c", command);
         } else {
             pb = new ProcessBuilder("/bin/sh", "-c", command);
@@ -117,5 +113,17 @@ public class JavaProcessor implements ServiceProcessor {
     @Override
     public boolean isAlive(Process process) {
         return process != null && process.isAlive();
+    }
+
+    static String resolveCommand(Service service) {
+        String windowsCommand = service.getWindowsCommand();
+        if (isWindows() && windowsCommand != null && !windowsCommand.isEmpty()) {
+            return windowsCommand;
+        }
+        return service.getCommand();
+    }
+
+    static boolean isWindows() {
+        return osName.toLowerCase().contains("win");
     }
 }

@@ -75,4 +75,28 @@ public class ServiceTest {
         service.setStartTime(java.time.LocalDateTime.of(2025, 1, 1, 0, 0));
         assertNotNull(service.getStartTime());
     }
+
+    @Test
+    public void constructorWithWindowsCommandShouldSetFields() {
+        Service service = new Service("test", "unix-cmd", "win-cmd", "/work");
+        assertEquals("test", service.getName());
+        assertEquals("unix-cmd", service.getCommand());
+        assertEquals("win-cmd", service.getWindowsCommand());
+        assertEquals("/work", service.getWorkingDir());
+        assertFalse(service.isRunning());
+    }
+
+    @Test
+    public void constructorWithNullWindowsCommandShouldStoreNull() {
+        Service service = new Service("test", "cmd", null, "");
+        assertNull(service.getWindowsCommand());
+    }
+
+    @Test
+    public void setWindowsCommandShouldUpdateField() {
+        Service service = new Service("test", "cmd", "");
+        assertNull(service.getWindowsCommand());
+        service.setWindowsCommand("win-cmd");
+        assertEquals("win-cmd", service.getWindowsCommand());
+    }
 }
