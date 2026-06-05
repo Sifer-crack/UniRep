@@ -13,6 +13,7 @@ public class Service {
     private int id;
     private String name;
     private String command;
+    private String windowsCommand;
     private String workingDir;
     private boolean running;
     private Process process;
@@ -21,8 +22,13 @@ public class Service {
     private List<String> logs;
 
     public Service(String name, String command, String workingDir) {
+        this(name, command, null, workingDir);
+    }
+
+    public Service(String name, String command, String windowsCommand, String workingDir) {
         this.name = name;
         this.command = command;
+        this.windowsCommand = windowsCommand;
         this.workingDir = workingDir;
         this.running = false;
         this.logs = new ArrayList<>();
@@ -42,6 +48,14 @@ public class Service {
 
     public String getCommand() {
         return command;
+    }
+
+    public String getWindowsCommand() {
+        return windowsCommand;
+    }
+
+    public void setWindowsCommand(String windowsCommand) {
+        this.windowsCommand = windowsCommand;
     }
 
     public String getWorkingDir() {

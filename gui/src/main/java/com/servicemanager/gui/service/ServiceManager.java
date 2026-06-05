@@ -193,6 +193,11 @@ public class ServiceManager {
 
     public void createCustomService(String name, String command, String workingDir)
             throws ServiceException {
+        createCustomService(name, command, null, workingDir);
+    }
+
+    public void createCustomService(String name, String command, String windowsCommand, String workingDir)
+            throws ServiceException {
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("Service name cannot be empty");
         }
@@ -206,7 +211,7 @@ public class ServiceManager {
             }
         }
 
-        Service service = new Service(name.trim(), command.trim(), workingDir != null ? workingDir.trim() : "");
+        Service service = new Service(name.trim(), command.trim(), windowsCommand != null ? windowsCommand.trim() : null, workingDir != null ? workingDir.trim() : "");
         try {
             serviceDAO.insert(service);
         } catch (java.sql.SQLException e) {

@@ -33,11 +33,17 @@ public class JavaProcessor implements ServiceProcessor {
     @Override
     public Process start(Service service) throws Exception {
         String os = System.getProperty("os.name").toLowerCase();
+        String command;
+        if (os.contains("win")) {
+            command = service.getWindowsCommand() != null ? service.getWindowsCommand() : service.getCommand();
+        } else {
+            command = service.getCommand();
+        }
         ProcessBuilder pb;
         if (os.contains("win")) {
-            pb = new ProcessBuilder("cmd.exe", "/c", service.getCommand());
+            pb = new ProcessBuilder("cmd.exe", "/c", command);
         } else {
-            pb = new ProcessBuilder("/bin/sh", "-c", service.getCommand());
+            pb = new ProcessBuilder("/bin/sh", "-c", command);
         }
 
         String workDir = service.getWorkingDir();

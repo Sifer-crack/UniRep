@@ -79,12 +79,16 @@ public class ConfigLoader {
 
             String name = serviceObject.get("name").getAsString();
             String command = serviceObject.get("command").getAsString();
+            String windowsCommand = null;
+            if (serviceObject.has("windowsCommand") && !serviceObject.get("windowsCommand").isJsonNull()) {
+                windowsCommand = serviceObject.get("windowsCommand").getAsString();
+            }
             String workingDir = "";
             if (serviceObject.has("workingDir") && !serviceObject.get("workingDir").isJsonNull()) {
                 workingDir = serviceObject.get("workingDir").getAsString();
             }
 
-            services.add(new Service(name, command, workingDir));
+            services.add(new Service(name, command, windowsCommand, workingDir));
         }
 
         return services;

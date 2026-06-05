@@ -103,9 +103,47 @@ gui/
 
 ## Configuration
 
-- **`services.json`** — preloaded service definitions (name, command, working directory)
+- **`services.json`** — preloaded service definitions (see format below)
 - **`logback.xml`** — logging level and output format
 - **Database** — `unirep.db` created automatically in the project root (gitignored)
+
+## Service Config Format
+
+Services can be defined either in `services.json` (loaded at startup) or created at runtime through the GUI form. Both use the same fields:
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `name` | Yes | Display name in the service table |
+| `command` | Yes | Shell command for Linux/macOS |
+| `windowsCommand` | No | Shell command for Windows (auto-selected on that OS) |
+| `workingDir` | No | Working directory (empty = project root) |
+
+If `windowsCommand` is omitted, the `command` field is used on all platforms.
+
+### `services.json` Example
+
+```json
+{
+  "services": [
+    {
+      "name": "hello",
+      "command": "echo \"Hello from service\"",
+      "windowsCommand": "echo Hello from service",
+      "workingDir": ""
+    },
+    {
+      "name": "list-files",
+      "command": "echo \"Current directory contents:\" && ls -la",
+      "windowsCommand": "echo Current directory contents: && dir",
+      "workingDir": ""
+    }
+  ]
+}
+```
+
+- `windowsCommand` is optional — omit it to use the same command on every OS
+- Commands run through the system shell: `/bin/sh -c` on Linux/macOS, `cmd.exe /c` on Windows
+- Add or remove entries in the `services` array to customise the seed data
 
 ## Technologies
 

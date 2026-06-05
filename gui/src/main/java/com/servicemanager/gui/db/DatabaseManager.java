@@ -61,6 +61,7 @@ public class DatabaseManager {
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "name TEXT UNIQUE NOT NULL, " +
                 "command TEXT NOT NULL, " +
+                "windows_command TEXT DEFAULT '', " +
                 "working_dir TEXT DEFAULT '')"
             );
 

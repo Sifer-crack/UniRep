@@ -25,6 +25,7 @@ public class MainController implements ServiceObserver {
     @FXML private TableColumn<Service, String> commandColumn;
     @FXML private TextField nameField;
     @FXML private TextField commandField;
+    @FXML private TextField windowsCommandField;
     @FXML private TextField workingDirField;
     @FXML private TextArea outputArea;
     @FXML private VBox mainView;
@@ -54,6 +55,7 @@ public class MainController implements ServiceObserver {
             if (sel != null) {
                 nameField.setText(sel.getName());
                 commandField.setText(sel.getCommand());
+                windowsCommandField.setText(sel.getWindowsCommand());
                 workingDirField.setText(sel.getWorkingDir());
             }
         });
@@ -356,6 +358,7 @@ public class MainController implements ServiceObserver {
     private void handleCreate() {
         String name = nameField.getText().trim();
         String command = commandField.getText().trim();
+        String windowsCommand = windowsCommandField.getText().trim();
         String workingDir = workingDirField.getText().trim();
 
         if (name.isEmpty() || command.isEmpty()) {
@@ -368,7 +371,8 @@ public class MainController implements ServiceObserver {
         }
 
         try {
-            serviceManager.createCustomService(name, command, workingDir);
+            serviceManager.createCustomService(name, command,
+                windowsCommand.isEmpty() ? null : windowsCommand, workingDir);
             appendOutput("Service '" + name + "' created.");
             Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
             successAlert.setTitle("Service Created");
@@ -377,6 +381,7 @@ public class MainController implements ServiceObserver {
             successAlert.showAndWait();
             nameField.clear();
             commandField.clear();
+            windowsCommandField.clear();
             workingDirField.clear();
             refreshTable();
         } catch (DuplicateServiceException e) {

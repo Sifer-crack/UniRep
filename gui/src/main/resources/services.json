@@ -3,11 +3,19 @@
     {
       "name": "hello",
       "command": "echo \"Hello from service\"",
+      "windowsCommand": "echo Hello from service",
       "workingDir": ""
     },
     {
       "name": "timer",
-      "command": "for i in 5 4 3 2 1 0; do printf \"\\r%02d:00 \" $i; sleep 1; done; echo \" - Timer done!\"",
+      "command": "echo \"Running...\" && echo \"Done!\"",
+      "windowsCommand": "echo Running... && echo Done!",
+      "workingDir": ""
+    },
+    {
+      "name": "list-files",
+      "command": "echo \"Current directory contents:\" && ls -la",
+      "windowsCommand": "echo Current directory contents: && dir",
       "workingDir": ""
     }
   ]

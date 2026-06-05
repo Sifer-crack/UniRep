@@ -26,13 +26,14 @@ public class SQLiteServiceDAO implements ServiceDAO {
 
     @Override
     public void insert(Service service) throws SQLException {
-        String sql = "INSERT INTO services (name, command, working_dir) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO services (name, command, windows_command, working_dir) VALUES (?, ?, ?, ?)";
         synchronized (dbManager) {
             Connection conn = dbManager.getConnection();
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setString(1, service.getName());
                 stmt.setString(2, service.getCommand());
-                stmt.setString(3, service.getWorkingDir());
+                stmt.setString(3, service.getWindowsCommand());
+                stmt.setString(4, service.getWorkingDir());
                 stmt.executeUpdate();
             }
         }
@@ -73,13 +74,14 @@ public class SQLiteServiceDAO implements ServiceDAO {
 
     @Override
     public void update(Service service) throws SQLException {
-        String sql = "UPDATE services SET command = ?, working_dir = ? WHERE name = ?";
+        String sql = "UPDATE services SET command = ?, windows_command = ?, working_dir = ? WHERE name = ?";
         synchronized (dbManager) {
             Connection conn = dbManager.getConnection();
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setString(1, service.getCommand());
-                stmt.setString(2, service.getWorkingDir());
-                stmt.setString(3, service.getName());
+                stmt.setString(2, service.getWindowsCommand());
+                stmt.setString(3, service.getWorkingDir());
+                stmt.setString(4, service.getName());
                 stmt.executeUpdate();
             }
         }
@@ -101,6 +103,7 @@ public class SQLiteServiceDAO implements ServiceDAO {
         Service service = new Service(
             rs.getString("name"),
             rs.getString("command"),
+            rs.getString("windows_command"),
             rs.getString("working_dir")
         );
         service.setId(rs.getInt("id"));
