@@ -1,7 +1,9 @@
 module com.servicemanager.gui {
     requires javafx.controls;
     requires javafx.fxml;
+    requires javafx.web;
     requires java.sql;
+    requires java.desktop;
     requires com.google.gson;
     requires org.controlsfx.controls;
     requires org.kordamp.ikonli.javafx;

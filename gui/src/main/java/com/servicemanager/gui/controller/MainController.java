@@ -11,12 +11,12 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.VBox;
+import javafx.scene.web.WebView;
+import java.awt.Desktop;
+import java.io.File;
+import java.net.URI;
 
-/** JavaFX controller for the main service management view.
- *  Handles all user interactions: start, stop, restart, logs,
- *  status, refresh, and create custom service.
- *  Implements ServiceObserver so the table and output area
- *  update automatically when service state changes. */
 public class MainController implements ServiceObserver {
 
     @FXML private TableView<Service> serviceTable;
@@ -27,6 +27,10 @@ public class MainController implements ServiceObserver {
     @FXML private TextField commandField;
     @FXML private TextField workingDirField;
     @FXML private TextArea outputArea;
+    @FXML private VBox mainView;
+    @FXML private VBox aboutPane;
+    @FXML private VBox docPane;
+    @FXML private WebView docWebView;
 
     private ServiceManager serviceManager;
     private final ObservableList<Service> serviceList = FXCollections.observableArrayList();
@@ -125,6 +129,221 @@ public class MainController implements ServiceObserver {
     @FXML
     private void handleExit() {
         System.exit(0);
+    }
+
+    @FXML
+    private void handleVideoTutorial() {
+        try {
+            Desktop.getDesktop().browse(
+                    URI.create("https://www.youtube.com/watch?v=PLACEHOLDER"));
+        } catch (Exception e) {
+            appendOutput("Could not open browser: " + e.getMessage());
+        }
+    }
+
+    /** Reads ../README.md (project root) or README.md (cwd),
+     *  converts markdown to styled HTML, and renders it in the
+     *  WebView panel. Falls back to an error page on failure. */
+    @FXML
+    private void handleDocumentation() {
+        aboutPane.setVisible(false);
+        aboutPane.setManaged(false);
+        try {
+            File readme = new File("../README.md");
+            if (!readme.exists()) {
+                readme = new File("README.md");
+            }
+            String md = new String(java.nio.file.Files.readAllBytes(readme.toPath()));
+            docWebView.getEngine().loadContent(markdownToHtml(md));
+        } catch (Exception e) {
+            docWebView.getEngine().loadContent(
+                    "<html><body style='font-family:Segoe UI;padding:20;color:#333;'>" +
+                    "<h2>Could not load README.md</h2><p>" + e.getMessage() + "</p></body></html>");
+        }
+        docPane.setVisible(true);
+        docPane.setManaged(true);
+        mainView.setVisible(false);
+        mainView.setManaged(false);
+    }
+
+    /** Converts a subset of markdown to styled HTML for display
+     *  in the documentation WebView. Supports headings (#/##/###),
+     *  fenced code blocks, inline code, bold, links, unordered lists,
+     *  horizontal rules, and numbered lines. */
+    private String markdownToHtml(String md) {
+        StringBuilder html = new StringBuilder();
+        html.append("""
+            <html>
+            <head>
+            <meta charset="utf-8">
+            <style>
+                body { font-family: 'Segoe UI', sans-serif; font-size: 14px;
+                       color: #333; padding: 30px; max-width: 800px; margin: 0 auto;
+                       background: #f4f6f8; }
+                h1 { color: #2563eb; border-bottom: 2px solid #2563eb;
+                     padding-bottom: 8px; margin-top: 0; }
+                h2 { color: #1d4ed8; margin-top: 28px; }
+                h3 { color: #1e40af; margin-top: 20px; }
+                code { background: #e2e8f0; padding: 2px 6px; border-radius: 4px;
+                       font-family: 'Consolas', monospace; font-size: 13px; }
+                pre { background: #e2e8f0; padding: 14px; border-radius: 8px;
+                      overflow-x: auto; }
+                pre code { background: transparent; padding: 0; }
+                a { color: #2563eb; text-decoration: none; }
+                a:hover { text-decoration: underline; }
+                hr { border: none; border-top: 1px solid #d1d5db; margin: 20px 0; }
+                ul { padding-left: 24px; }
+                li { margin-bottom: 4px; }
+                p { line-height: 1.6; }
+                table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+                th, td { border: 1px solid #d1d5db; padding: 8px 12px; text-align: left; }
+                th { background: #2563eb; color: white; }
+            </style>
+            </head>
+            <body>
+            """);
+
+        String[] lines = md.split("\n", -1);
+        boolean inCodeBlock = false;
+        StringBuilder codeBlock = new StringBuilder();
+        boolean inList = false;
+
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+
+            if (line.trim().startsWith("```")) {
+                if (inCodeBlock) {
+                    html.append("<pre><code>")
+                        .append(escapeHtml(codeBlock.toString()))
+                        .append("</code></pre>\n");
+                    codeBlock.setLength(0);
+                    inCodeBlock = false;
+                } else {
+                    inCodeBlock = true;
+                }
+                continue;
+            }
+
+            if (inCodeBlock) {
+                if (codeBlock.length() > 0) codeBlock.append("\n");
+                codeBlock.append(line);
+                continue;
+            }
+
+            if (inList && !line.trim().startsWith("- ") && !line.trim().startsWith("* ")
+                    && !line.trim().isEmpty()) {
+                html.append("</ul>\n");
+                inList = false;
+            }
+
+            if (line.trim().isEmpty()) {
+                if (inList) {
+                    html.append("</ul>\n");
+                    inList = false;
+                }
+                continue;
+            }
+
+            String trimmed = line.trim();
+
+            if (trimmed.startsWith("# ")) {
+                html.append("<h1>").append(renderInline(trimmed.substring(2).trim())).append("</h1>\n");
+            } else if (trimmed.startsWith("## ")) {
+                html.append("<h2>").append(renderInline(trimmed.substring(3).trim())).append("</h2>\n");
+            } else if (trimmed.startsWith("### ")) {
+                html.append("<h3>").append(renderInline(trimmed.substring(4).trim())).append("</h3>\n");
+            } else if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
+                if (!inList) {
+                    html.append("<ul>\n");
+                    inList = true;
+                }
+                html.append("<li>").append(renderInline(trimmed.substring(2).trim())).append("</li>\n");
+            } else if (trimmed.startsWith("---") || trimmed.startsWith("***")) {
+                html.append("<hr>\n");
+            } else if (trimmed.matches("^\\d+\\.\\s.*")) {
+                String content = trimmed.replaceFirst("^\\d+\\.\\s+", "");
+                html.append("<p><b>").append(renderInline(content)).append("</b></p>\n");
+            } else {
+                html.append("<p>").append(renderInline(line.trim())).append("</p>\n");
+            }
+        }
+
+        if (inCodeBlock) {
+            html.append("<pre><code>")
+                .append(escapeHtml(codeBlock.toString()))
+                .append("</code></pre>\n");
+        }
+        if (inList) {
+            html.append("</ul>\n");
+        }
+
+        html.append("</body></html>");
+        return html.toString();
+    }
+
+    /** Renders inline markdown elements (bold, code, links) into HTML
+     *  after escaping raw HTML entities. */
+    private String renderInline(String text) {
+        text = escapeHtml(text);
+        text = text.replaceAll("\\[([^\\]]+)\\]\\(([^)]+)\\)", "<a href=\"$2\">$1</a>");
+        text = text.replaceAll("\\*\\*([^*]+)\\*\\*", "<strong>$1</strong>");
+        text = text.replaceAll("`([^`]+)`", "<code>$1</code>");
+        return text;
+    }
+
+    /** Escapes &, <, > to prevent HTML injection in rendered output. */
+    private String escapeHtml(String text) {
+        return text.replace("&", "&amp;")
+                   .replace("<", "&lt;")
+                   .replace(">", "&gt;");
+    }
+
+    @FXML
+    private void handleAboutUs() {
+        docPane.setVisible(false);
+        docPane.setManaged(false);
+        aboutPane.setVisible(true);
+        aboutPane.setManaged(true);
+        mainView.setVisible(false);
+        mainView.setManaged(false);
+    }
+
+    @FXML
+    private void handleBackToMain() {
+        aboutPane.setVisible(false);
+        aboutPane.setManaged(false);
+        docPane.setVisible(false);
+        docPane.setManaged(false);
+        mainView.setVisible(true);
+        mainView.setManaged(true);
+    }
+
+    @FXML
+    private void openSemionGitHub() {
+        openUrl("https://github.com/Sifer-crack");
+    }
+
+    @FXML
+    private void openSemionLinkedIn() {
+        openUrl("https://linkedin.com/in/semion-andreev");
+    }
+
+    @FXML
+    private void openRaheemGitHub() {
+        openUrl("https://github.com/raheem-khawaja");
+    }
+
+    @FXML
+    private void openRaheemLinkedIn() {
+        openUrl("https://linkedin.com/in/raheem-khawaja");
+    }
+
+    private void openUrl(String url) {
+        try {
+            Desktop.getDesktop().browse(URI.create(url));
+        } catch (Exception e) {
+            appendOutput("Could not open link: " + e.getMessage());
+        }
     }
 
     @FXML
