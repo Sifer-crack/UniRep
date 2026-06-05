@@ -45,7 +45,7 @@ public class ServicesLoader {
                 }
             }
         } catch (SQLException e) {
-            throw new ConfigLoadException("Failed to load custom services from database");
+            throw new ConfigLoadException("Failed to load custom services from database", e);
         }
 
         return allServices;

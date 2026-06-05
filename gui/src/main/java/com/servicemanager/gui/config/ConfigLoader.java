@@ -50,7 +50,7 @@ public class ConfigLoader {
                 return parseServices(reader);
             }
         } catch (Exception e) {
-            throw new ConfigLoadException("Failed to load services from classpath: " + resource);
+            throw new ConfigLoadException("Failed to load services from classpath: " + resource, e);
         }
     }
 
@@ -60,7 +60,7 @@ public class ConfigLoader {
         } catch (FileNotFoundException e) {
             throw new ConfigLoadException("Config file not found: " + path);
         } catch (Exception e) {
-            throw new ConfigLoadException("Failed to load services from config file: " + path);
+            throw new ConfigLoadException("Failed to load services from config file: " + path, e);
         }
     }
 

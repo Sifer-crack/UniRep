@@ -9,6 +9,10 @@ public class ConfigLoadException extends ServiceException {
         super(message);
     }
 
+    public ConfigLoadException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
     @Override
     public String getRecoveryHint() {
         return "Check services.json file exists and is valid JSON";

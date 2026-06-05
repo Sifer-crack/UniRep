@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Singleton managing the SQLite database connection.
  *  Lazily initialises the connection on first access and
@@ -15,6 +17,8 @@ import java.sql.Statement;
  *  database access is guaranteed by synchronized blocks in the
  *  DAO layer that serialize all operations on this instance. */
 public class DatabaseManager {
+
+    private static final Logger log = LoggerFactory.getLogger(DatabaseManager.class);
 
     private static DatabaseManager instance;
     private Connection connection;
@@ -88,7 +92,7 @@ public class DatabaseManager {
                 connection.close();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("Failed to close database connection", e);
         }
     }
 

@@ -6,6 +6,8 @@ import com.servicemanager.gui.exception.*;
 import com.servicemanager.gui.model.Execution;
 import com.servicemanager.gui.model.Output;
 import com.servicemanager.gui.model.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -21,6 +23,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
  *  OS process management, and fires Observer events so the
  *  GUI can react to state changes automatically. */
 public class ServiceManager {
+
+    private static final Logger log = LoggerFactory.getLogger(ServiceManager.class);
 
     private final List<Service> services;
     private final ServiceDAO serviceDAO;
@@ -70,7 +74,7 @@ public class ServiceManager {
             Service service = findService(serviceName);
             notifyObservers(service, status, "Exit code: " + exitCode);
         } catch (Exception e) {
-
+            log.error("Failed to notify finish for service {}: {}", serviceName, e.getMessage());
         }
     }
 
@@ -174,6 +178,7 @@ public class ServiceManager {
                 int start = Math.max(0, allLogs.size() - lines);
                 logs = allLogs.subList(start, allLogs.size());
             } catch (Exception e) {
+                log.warn("Failed to read log file for {}, falling back to in-memory logs: {}", name, e.getMessage());
                 logs = service.getLogs(lines);
             }
         } else {
@@ -218,6 +223,7 @@ public class ServiceManager {
         try {
             return executionDAO.findByServiceName(serviceName);
         } catch (java.sql.SQLException e) {
+            log.error("Failed to fetch execution history for {}: {}", serviceName, e.getMessage());
             return new ArrayList<>();
         }
     }
@@ -226,6 +232,7 @@ public class ServiceManager {
         try {
             return outputDAO.findByExecutionId(executionId);
         } catch (java.sql.SQLException e) {
+            log.error("Failed to fetch outputs for execution {}: {}", executionId, e.getMessage());
             return new ArrayList<>();
         }
     }

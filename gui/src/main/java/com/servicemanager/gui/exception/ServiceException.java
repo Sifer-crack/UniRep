@@ -11,6 +11,10 @@ public abstract class ServiceException extends Exception {
         super(message);
     }
 
+    public ServiceException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
     public ServiceException(String serviceName, String message) {
         super(message);
         this.serviceName = serviceName;

@@ -102,6 +102,7 @@ public class JavaProcessor implements ServiceProcessor {
             try {
                 process.waitFor(5, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 process.destroyForcibly();
             }
         }
