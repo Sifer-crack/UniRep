@@ -143,9 +143,6 @@ public class MainController implements ServiceObserver {
         }
     }
 
-    /** Reads ../README.md (project root) or README.md (cwd),
-     *  converts markdown to styled HTML, and renders it in the
-     *  WebView panel. Falls back to an error page on failure. */
     @FXML
     private void handleDocumentation() {
         aboutPane.setVisible(false);
@@ -160,7 +157,7 @@ public class MainController implements ServiceObserver {
         } catch (Exception e) {
             docWebView.getEngine().loadContent(
                     "<html><body style='font-family:Segoe UI;padding:20;color:#333;'>" +
-                    "<h2>Could not load README.md</h2><p>" + e.getMessage() + "</p></body></html>");
+                            "<h2>Could not load README.md</h2><p>" + e.getMessage() + "</p></body></html>");
         }
         docPane.setVisible(true);
         docPane.setManaged(true);
@@ -168,10 +165,6 @@ public class MainController implements ServiceObserver {
         mainView.setManaged(false);
     }
 
-    /** Converts a subset of markdown to styled HTML for display
-     *  in the documentation WebView. Supports headings (#/##/###),
-     *  fenced code blocks, inline code, bold, links, unordered lists,
-     *  horizontal rules, and numbered lines. */
     private String markdownToHtml(String md) {
         StringBuilder html = new StringBuilder();
         html.append("""
@@ -210,14 +203,12 @@ public class MainController implements ServiceObserver {
         StringBuilder codeBlock = new StringBuilder();
         boolean inList = false;
 
-        for (int i = 0; i < lines.length; i++) {
-            String line = lines[i];
-
+        for (String line : lines) {
             if (line.trim().startsWith("```")) {
                 if (inCodeBlock) {
                     html.append("<pre><code>")
-                        .append(escapeHtml(codeBlock.toString()))
-                        .append("</code></pre>\n");
+                            .append(escapeHtml(codeBlock.toString()))
+                            .append("</code></pre>\n");
                     codeBlock.setLength(0);
                     inCodeBlock = false;
                 } else {
@@ -272,8 +263,8 @@ public class MainController implements ServiceObserver {
 
         if (inCodeBlock) {
             html.append("<pre><code>")
-                .append(escapeHtml(codeBlock.toString()))
-                .append("</code></pre>\n");
+                    .append(escapeHtml(codeBlock.toString()))
+                    .append("</code></pre>\n");
         }
         if (inList) {
             html.append("</ul>\n");
@@ -283,8 +274,6 @@ public class MainController implements ServiceObserver {
         return html.toString();
     }
 
-    /** Renders inline markdown elements (bold, code, links) into HTML
-     *  after escaping raw HTML entities. */
     private String renderInline(String text) {
         text = escapeHtml(text);
         text = text.replaceAll("\\[([^\\]]+)\\]\\(([^)]+)\\)", "<a href=\"$2\">$1</a>");
@@ -293,11 +282,10 @@ public class MainController implements ServiceObserver {
         return text;
     }
 
-    /** Escapes &, <, > to prevent HTML injection in rendered output. */
     private String escapeHtml(String text) {
         return text.replace("&", "&amp;")
-                   .replace("<", "&lt;")
-                   .replace(">", "&gt;");
+                .replace("<", "&lt;")
+                .replace(">", "&gt;");
     }
 
     @FXML
@@ -358,27 +346,23 @@ public class MainController implements ServiceObserver {
     private void handleCreate() {
         String name = nameField.getText().trim();
         String command = commandField.getText().trim();
-        String windowsCommand = windowsCommandField.getText().trim();
+        String windowsCommand = windowsCommandField.getText() == null
+                ? ""
+                : windowsCommandField.getText().trim();
         String workingDir = workingDirField.getText().trim();
 
         if (name.isEmpty() || command.isEmpty()) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Validation Error");
-            alert.setHeaderText("Missing Required Fields");
-            alert.setContentText("Please enter both a service name and command.");
-            alert.showAndWait();
+            showAlert(Alert.AlertType.ERROR, "Validation Error",
+                    "Please enter both a service name and command.");
             return;
         }
 
         try {
             serviceManager.createCustomService(name, command,
-                windowsCommand.isEmpty() ? null : windowsCommand, workingDir);
+                    windowsCommand.isEmpty() ? null : windowsCommand, workingDir);
             appendOutput("Service '" + name + "' created.");
-            Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
-            successAlert.setTitle("Service Created");
-            successAlert.setHeaderText("Service Created Successfully");
-            successAlert.setContentText("The service '" + name + "' has been added.");
-            successAlert.showAndWait();
+            showAlert(Alert.AlertType.INFORMATION, "Service Created",
+                    "The service '" + name + "' has been added.");
             nameField.clear();
             commandField.clear();
             windowsCommandField.clear();
@@ -386,10 +370,48 @@ public class MainController implements ServiceObserver {
             refreshTable();
         } catch (DuplicateServiceException e) {
             appendOutput("ERROR: " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Duplicate Service", e.getMessage());
         } catch (IllegalArgumentException e) {
             appendOutput("ERROR: " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Validation Error", e.getMessage());
         } catch (Exception e) {
             appendOutput("ERROR: " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Create Failed", e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleSaveChanges() {
+        Service selected = serviceTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showAlert(Alert.AlertType.ERROR, "No Service Selected",
+                    "Please select a service before saving changes.");
+            return;
+        }
+
+        String name = selected.getName();
+        String command = commandField.getText().trim();
+        String windowsCommand = windowsCommandField.getText() == null
+                ? ""
+                : windowsCommandField.getText().trim();
+        String workingDir = workingDirField.getText().trim();
+
+        if (command.isEmpty()) {
+            showAlert(Alert.AlertType.ERROR, "Validation Error",
+                    "Command cannot be empty.");
+            return;
+        }
+
+        try {
+            serviceManager.updateService(name, command,
+                    windowsCommand.isEmpty() ? null : windowsCommand, workingDir);
+            appendOutput("Service '" + name + "' updated.");
+            showAlert(Alert.AlertType.INFORMATION, "Service Updated",
+                    "The service '" + name + "' has been updated.");
+            refreshTable();
+        } catch (Exception e) {
+            appendOutput("ERROR: " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Update Failed", e.getMessage());
         }
     }
 
@@ -398,6 +420,7 @@ public class MainController implements ServiceObserver {
         serviceList.setAll(serviceManager.getServices());
         serviceTable.setItems(serviceList);
     }
+
     void setServiceManagerForTest(ServiceManager serviceManager) {
         this.serviceManager = serviceManager;
     }
@@ -405,6 +428,14 @@ public class MainController implements ServiceObserver {
     private void appendOutput(String text) {
         if (text == null || text.isEmpty()) return;
         outputArea.appendText(text + "\n");
+    }
+
+    private void showAlert(Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(title);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     private String callManager(ManagerCall call) {

@@ -211,7 +211,13 @@ public class ServiceManager {
             }
         }
 
-        Service service = new Service(name.trim(), command.trim(), windowsCommand != null ? windowsCommand.trim() : null, workingDir != null ? workingDir.trim() : "");
+        Service service = new Service(
+                name.trim(),
+                command.trim(),
+                windowsCommand != null ? windowsCommand.trim() : null,
+                workingDir != null ? workingDir.trim() : ""
+        );
+
         try {
             serviceDAO.insert(service);
         } catch (java.sql.SQLException e) {
@@ -222,6 +228,30 @@ public class ServiceManager {
         }
         services.add(service);
         notifyObservers(service, "created", "Custom service created");
+    }
+
+    public void updateService(String name, String command, String windowsCommand, String workingDir)
+            throws ServiceException {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Service name cannot be empty");
+        }
+        if (command == null || command.trim().isEmpty()) {
+            throw new IllegalArgumentException("Command cannot be empty");
+        }
+
+        Service service = findService(name);
+
+        service.setCommand(command.trim());
+        service.setWindowsCommand(windowsCommand != null ? windowsCommand.trim() : null);
+        service.setWorkingDir(workingDir != null ? workingDir.trim() : "");
+
+        try {
+            serviceDAO.update(service);
+        } catch (java.sql.SQLException e) {
+            throw new RuntimeException("Failed to update service: " + e.getMessage());
+        }
+
+        notifyObservers(service, "updated", "Service details updated");
     }
 
     public List<Execution> getExecutionHistory(String serviceName) {
