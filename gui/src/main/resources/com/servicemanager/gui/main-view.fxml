@@ -7,7 +7,6 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.SplitPane?>
@@ -35,7 +34,6 @@
         <MenuItem onAction="#handleExit" text="Exit" />
       </Menu>
       <Menu text="Help">
-        <!-- <MenuItem text="Video Tutorial" onAction="#handleVideoTutorial"/> -->
         <MenuItem onAction="#handleDocumentation" text="Documentation" />
         <SeparatorMenuItem />
         <MenuItem onAction="#handleAboutUs" text="About Us" />
@@ -45,7 +43,6 @@
 
   <center>
     <StackPane>
-      <!-- Main service management view -->
       <VBox fx:id="mainView">
         <SplitPane dividerPositions="0.7" VBox.vgrow="ALWAYS">
           <TableView fx:id="serviceTable">
@@ -75,6 +72,7 @@
 
         <GridPane hgap="10" vgap="10">
           <padding><Insets bottom="10" left="10" right="10" top="10" /></padding>
+
           <Label text="Name:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
           <TextField fx:id="nameField" promptText="Service name" GridPane.columnIndex="1" GridPane.rowIndex="0" />
 
@@ -87,38 +85,37 @@
           <Label text="Work Dir:" GridPane.columnIndex="2" GridPane.rowIndex="1" />
           <TextField fx:id="workingDirField" promptText="(optional)" GridPane.columnIndex="3" GridPane.rowIndex="1" />
 
-          <Button onAction="#handleCreate" text="Create Service" GridPane.columnIndex="3" GridPane.rowIndex="2" />
-               <columnConstraints>
-                  <ColumnConstraints />
-                  <ColumnConstraints />
-                  <ColumnConstraints />
-                  <ColumnConstraints />
-               </columnConstraints>
-               <rowConstraints>
-                  <RowConstraints />
-                  <RowConstraints />
-                  <RowConstraints />
-               </rowConstraints>
+          <Button onAction="#handleCreate" text="Create Service" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+          <Button onAction="#handleSaveChanges" text="Save Changes" GridPane.columnIndex="3" GridPane.rowIndex="2" />
+
+          <columnConstraints>
+            <ColumnConstraints />
+            <ColumnConstraints />
+            <ColumnConstraints />
+            <ColumnConstraints />
+          </columnConstraints>
+          <rowConstraints>
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+          </rowConstraints>
         </GridPane>
       </VBox>
 
-      <!-- About Us pane (hidden by default) -->
       <VBox fx:id="aboutPane" managed="false" visible="false" VBox.vgrow="ALWAYS">
         <HBox alignment="CENTER_LEFT">
           <Button onAction="#handleBackToMain" style="-fx-cursor: hand; -fx-font-size: 13;" text="← Back" />
         </HBox>
 
         <HBox alignment="CENTER" spacing="0" VBox.vgrow="ALWAYS">
-          <!-- Semion Section (Left) -->
           <VBox alignment="TOP_CENTER" maxWidth="Infinity" spacing="14" style="-fx-background-color: #FAEBD7; -fx-padding: 25 20 25 20;" HBox.hgrow="ALWAYS">
-
             <StackPane>
               <Rectangle ArcHeight="12" ArcWidth="12" fill="#A8D8EA" height="444.0" style="-fx-stroke: #8B7355; -fx-stroke-width: 3;" width="200.0">
                 <effect>
                   <DropShadow color="#00000044" offsetX="2" offsetY="2" radius="3" />
                 </effect>
               </Rectangle>
-              <Text fill="white" style="-fx-font-weight: bold; -fx-font-size: 28;                            -fx-font-family: 'Segoe UI', sans-serif;" text="SA" />
+              <Text fill="white" style="-fx-font-weight: bold; -fx-font-size: 28; -fx-font-family: 'Segoe UI', sans-serif;" text="SA" />
             </StackPane>
 
             <HBox alignment="CENTER" spacing="20">
@@ -137,7 +134,6 @@
             <VBox alignment="TOP_LEFT" maxWidth="280" spacing="6">
               <Label style="-fx-font-weight: bold; -fx-font-size: 14;" text="About me:" />
               <Label style="-fx-text-fill: #555; -fx-font-size: 12;" text="(Add your description here)" wrapText="true" />
-
               <Label style="-fx-font-weight: bold; -fx-font-size: 14;" text="My contribution:" VBox.vgrow="ALWAYS">
                 <padding><Insets bottom="0" left="0" right="0" top="10" /></padding>
               </Label>
@@ -145,19 +141,16 @@
             </VBox>
           </VBox>
 
-          <!-- Vertical Divider -->
           <Separator orientation="VERTICAL" prefWidth="2" style="-fx-background-color: #A0926B;" />
 
-          <!-- Raheem Section (Right) -->
           <VBox alignment="TOP_CENTER" maxWidth="Infinity" spacing="14" style="-fx-background-color: #F5F5DC; -fx-padding: 25 20 25 20;" HBox.hgrow="ALWAYS">
-
             <StackPane>
               <Rectangle ArcHeight="12" ArcWidth="12" fill="#A8E6CF" height="444" style="-fx-stroke: #6B8E23; -fx-stroke-width: 3;" width="200">
                 <effect>
                   <DropShadow color="#00000044" offsetX="2" offsetY="2" radius="3" />
                 </effect>
               </Rectangle>
-              <Text fill="white" style="-fx-font-weight: bold; -fx-font-size: 28;                            -fx-font-family: 'Segoe UI', sans-serif;" text="RK" />
+              <Text fill="white" style="-fx-font-weight: bold; -fx-font-size: 28; -fx-font-family: 'Segoe UI', sans-serif;" text="RK" />
             </StackPane>
 
             <HBox alignment="CENTER" spacing="20">
@@ -176,7 +169,6 @@
             <VBox alignment="TOP_LEFT" maxWidth="280" spacing="6">
               <Label style="-fx-font-weight: bold; -fx-font-size: 14;" text="About me:" />
               <Label style="-fx-text-fill: #555; -fx-font-size: 12;" text="(Add your description here)" wrapText="true" />
-
               <Label style="-fx-font-weight: bold; -fx-font-size: 14;" text="My contribution:" VBox.vgrow="ALWAYS">
                 <padding><Insets bottom="0" left="0" right="0" top="10" /></padding>
               </Label>
@@ -186,7 +178,6 @@
         </HBox>
       </VBox>
 
-      <!-- Documentation pane (hidden by default) -->
       <VBox fx:id="docPane" visible="false" managed="false" VBox.vgrow="ALWAYS"
             style="-fx-background-color: #f4f6f8;">
         <HBox alignment="CENTER_LEFT" style="-fx-background-color: #f4f6f8;">

@@ -50,6 +50,14 @@ public class Service {
         return command;
     }
 
+    public void setCommand(String command) {
+        this.command = command;
+    }
+
+    public void setWorkingDir(String workingDir) {
+        this.workingDir = workingDir;
+    }
+
     public String getWindowsCommand() {
         return windowsCommand;
     }
